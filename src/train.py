@@ -1,11 +1,16 @@
 import argparse
+
+import mlflow
 import numpy as np
 import pandas as pd
-import mlflow
 from datasets import Dataset
 from sklearn.metrics import accuracy_score, f1_score
-from transformers import (AutoTokenizer, AutoModelForSequenceClassification,
-                          TrainingArguments, Trainer)
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    Trainer,
+    TrainingArguments,
+)
 
 p = argparse.ArgumentParser()
 p.add_argument("--model", default="distilroberta-base")
@@ -29,7 +34,7 @@ test_ds = Dataset.from_pandas(test_df).map(tokenize, batched=True)
 
 model = AutoModelForSequenceClassification.from_pretrained(
     args.model, num_labels=len(labels),
-    id2label=dict(enumerate(labels)), label2id={l: i for i, l in enumerate(labels)})
+    id2label=dict(enumerate(labels)), label2id={name: i for i, name in enumerate(labels)})
 
 def metrics(pred):
     y = np.argmax(pred.predictions, axis=1)

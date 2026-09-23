@@ -1,4 +1,6 @@
-import statistics, time, httpx
+import statistics
+
+import httpx
 
 texts = ["My card has not arrived yet", "I was charged twice",
          "How do I top up my account?", "Why was my transfer declined?"]

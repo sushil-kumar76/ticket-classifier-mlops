@@ -1,5 +1,6 @@
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
 
 BASE = "https://raw.githubusercontent.com/PolyAI-LDN/task-specific-datasets/master/banking_data"
 
@@ -13,7 +14,7 @@ test = pd.read_csv(f"{BASE}/test.csv")
 
 labels = sorted(train["category"].unique())
 
-label2id = {l: i for i, l in enumerate(labels)}
+label2id = {name: i for i, name in enumerate(labels)}
 
 for df, name in [(train, "train"), (test, "test")]:
 

@@ -4,9 +4,9 @@ from contextlib import asynccontextmanager
 
 import torch
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
 from prometheus_fastapi_instrumentator import Instrumentator
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from pydantic import BaseModel, Field
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 MODEL_DIR = os.getenv("MODEL_DIR", "models/final")
 THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.7"))

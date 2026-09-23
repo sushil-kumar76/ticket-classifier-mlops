@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    env:
+      STUB_MODEL: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --timeout 120 --retries 10 \
+            --extra-index-url https://download.pytorch.org/whl/cpu \
+            torch==2.14.0+cpu transformers==5.17.0 fastapi==0.141.1 \
+            uvicorn==0.53.0 prometheus-fastapi-instrumentator \
+            pydantic==2.13.5 pytest httpx ruff
+
+      - name: Lint
+        run: ruff check src/ tests/
+
+      - name: Build stub model
+        run: python src/make_test_model.py --out models/final
+
+      - name: Run tests
+        run: pytest -v
+
+  build-image:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build stub model for image validation
+        run: |
+          pip install --timeout 120 --retries 10 \
+            --extra-index-url https://download.pytorch.org/whl/cpu \
+            torch==2.14.0+cpu transformers==5.17.0
+          python src/make_test_model.py --out models/final
+
+      - name: Build Docker image
+        run: docker build -f docker/Dockerfile -t ticket-classifier:ci .
+
+      - name: Smoke test the container
+        run: |
+          docker run -d --name ci-tc -p 8000:8000 ticket-classifier:ci
+          for i in $(seq 1 30); do
+            curl -sf localhost:8000/health && break || sleep 2
+          done
+          curl -sf -X POST localhost:8000/predict \
+            -H "Content-Type: application/json" \
+            -d '{"text":"test message"}' | grep -q '"label"'
+          docker rm -f ci-tc
