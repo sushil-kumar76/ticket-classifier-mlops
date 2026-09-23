@@ -1,0 +1,9 @@
+.venv/
+.git/
+data/
+models/checkpoints/
+mlartifacts/
+mlflow.db
+__pycache__/
+.pytest_cache/
+docs/
